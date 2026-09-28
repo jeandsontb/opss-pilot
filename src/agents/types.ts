@@ -22,6 +22,13 @@ export type TraceEvent =
     toModel: string;
     reason: string;
     node?: string;
+  }
+  | {
+    type: "handoff";
+    from: string;
+    to: string;
+    brief: string;
+    node?: string;
   };
 export type Metrics = {
   llCalls: number;

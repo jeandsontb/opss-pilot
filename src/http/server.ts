@@ -18,6 +18,9 @@ import { requestIdSchema } from "../obs/types.js";
 import type { ObservabilityRepository } from "../obs/trace-persistence.js";
 import { logger } from "../obs/logger.js";
 import { summarizeRequests } from "../obs/stats.js";
+import { runTeam, teamRequestSchema, teamResponseSchema } from "../team/graph.js";
+import type { OperationalRepository } from "../models/store.js";
+import { SqliteOperationalStore } from "../models/store.js";
 
 const chatRequestSchema = z.object({
   message: z.string().min(1),
@@ -120,6 +123,7 @@ type ServerOptions = {
   contextBuilder?: ContextBuilder;
   router?: (prompt: string) => Promise<{ decision: unknown; metrics: ReasoningResult["metrics"] }>;
   observability?: ObservabilityRepository;
+  operational?: OperationalRepository;
 }
 
 export function createServer(options: ServerOptions = {}): Express {
@@ -128,6 +132,7 @@ export function createServer(options: ServerOptions = {}): Express {
   const memories = options.memories ?? new SqliteMemoryStore(getEmbeddingProvider());
   const learningReflector = options.learningReflector ?? createLearningReflector({ memories });
   const observability = options.observability ?? new SqliteObservabilityRepository();
+  const operational = options.operational ?? new SqliteOperationalStore();
 
   app.use((request, response, next) => {
     response.setHeader("Access-Control-Allow-Origin", "*");
@@ -287,6 +292,56 @@ export function createServer(options: ServerOptions = {}): Express {
         return;
       }
       next(error);
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // T015: Rota POST /team — modo equipe multi-agente
+  // ---------------------------------------------------------------------------
+
+  app.post("/team", async (request, response, next) => {
+    const parsed = teamRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      response.status(422).json({ issues: parsed.error.issues });
+      return;
+    }
+
+    const requestId = parsed.data.requestId ?? randomUUID();
+    response.setHeader("X-Request-Id", requestId);
+
+    const timeoutMs = 180_000;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    let timedOut = false;
+
+    try {
+      const result = await Promise.race([
+        runTeam({ ...parsed.data, requestId }, conversations, operational, observability),
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(() => {
+            timedOut = true;
+            reject(new Error("Team graph timed out"));
+          }, timeoutMs);
+        }),
+      ]);
+      if (!timedOut) {
+        response.status(200).json(teamResponseSchema.parse(result));
+      }
+    } catch (error) {
+      if (timedOut) {
+        response.status(504).json({ requestId, error: "Team graph timed out" });
+        return;
+      }
+      if (error instanceof ConversationNotFoundError) {
+        response.status(404).json({ requestId, error: error.message });
+        return;
+      }
+      if (error instanceof ModelUnavailableError) {
+        response.status(503).json({ requestId, error: "Model service unavailable" });
+        return;
+      }
+      next(error);
+    } finally {
+      if (timeout) clearTimeout(timeout);
     }
   });
 
