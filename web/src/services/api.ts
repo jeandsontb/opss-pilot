@@ -7,6 +7,8 @@ export type SendMessageOptions = {
   userId?: string;
   strategy?: string;
   reflect?: boolean;
+  mode?: "chat" | "team";
+  maxSteps?: number;
 };
 
 export class ApiError extends Error {
@@ -23,10 +25,25 @@ export class ApiError extends Error {
 
 export async function sendMessage(options: SendMessageOptions): Promise<ChatResponse> {
   const config = loadApiConfig();
-  const endpoint = `${config.baseUrl}/chat`;
+  const isTeam = options.mode === "team";
+  const endpoint = isTeam ? `${config.baseUrl}/team` : `${config.baseUrl}/chat`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), config.timeoutMs);
+
+  const requestBody = isTeam
+    ? {
+        message: options.message,
+        conversationId: options.conversationId,
+        maxSteps: options.maxSteps ?? 8,
+      }
+    : {
+        message: options.message,
+        conversationId: options.conversationId,
+        userId: options.userId,
+        strategy: options.strategy,
+        reflect: options.reflect,
+      };
 
   try {
     const response = await fetch(endpoint, {
@@ -35,13 +52,7 @@ export async function sendMessage(options: SendMessageOptions): Promise<ChatResp
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify({
-        message: options.message,
-        conversationId: options.conversationId,
-        userId: options.userId,
-        strategy: options.strategy,
-        reflect: options.reflect,
-      }),
+      body: JSON.stringify(requestBody),
       signal: controller.signal,
     });
 

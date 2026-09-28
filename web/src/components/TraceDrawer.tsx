@@ -45,6 +45,8 @@ export const TraceDrawer: React.FC<TraceDrawerProps> = ({ isOpen, message, onClo
         return { label: `CONTINGÊNCIA (${event.fromModel} ➔ ${event.toModel})`, color: "var(--color-danger)", bg: "var(--color-danger-subtle)", icon: "🔄" };
       case "answer":
         return { label: "RESPOSTA FINAL", color: "var(--color-success)", bg: "var(--color-success-subtle)", icon: "💬" };
+      case "handoff":
+        return { label: `HANDOFF: ${event.from} → ${event.to}`, color: "#a78bfa", bg: "rgba(167,139,250,0.12)", icon: "➡️" };
       default:
         return { label: "EVENTO", color: "var(--text-muted)", bg: "var(--bg-elevated)", icon: "⚙️" };
     }
@@ -203,7 +205,7 @@ export const TraceDrawer: React.FC<TraceDrawerProps> = ({ isOpen, message, onClo
                       </span>
                     </div>
                     <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
-                      Passo {idx + 1} • Nó: {event.node}
+                      Passo {idx + 1} • {event.node ? `Nó: ${event.node}` : event.type === "handoff" ? "Transição de Papel" : "Supervisor"}
                     </span>
                   </div>
 
@@ -291,6 +293,38 @@ export const TraceDrawer: React.FC<TraceDrawerProps> = ({ isOpen, message, onClo
                       Motivo: {event.reason}
                     </div>
                   )}
+
+                  {/* T023: Renderização do evento handoff */}
+                  {event.type === "handoff" && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+                      <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
+                        <span aria-hidden="true">➡️</span>
+                        <strong>{event.from}</strong>
+                        <span>➔</span>
+                        <strong>{event.to}</strong>
+                      </div>
+                      {event.brief && (
+                        <div style={{ fontSize: "var(--font-size-sm)", color: "var(--text-secondary)", fontStyle: "italic", marginTop: "2px" }}>
+                          "{event.brief}"
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* T025: Fallback visual para tipos não reconhecidos explicitamente */}
+                  {event.type !== "route" &&
+                    event.type !== "thought" &&
+                    event.type !== "action" &&
+                    event.type !== "observation" &&
+                    event.type !== "plan" &&
+                    event.type !== "critique" &&
+                    event.type !== "fallback" &&
+                    event.type !== "answer" &&
+                    event.type !== "handoff" && (
+                      <div style={{ fontSize: "var(--font-size-xs)", color: "var(--text-muted)", fontStyle: "italic" }}>
+                        [handoff] {JSON.stringify(event)}
+                      </div>
+                    )}
                 </div>
               );
             })

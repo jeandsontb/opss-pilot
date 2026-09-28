@@ -15,9 +15,12 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isApiOnline, setIsApiOnline] = useState<boolean | null>(null);
 
-  // Modais e Drawers
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedTraceMessage, setSelectedTraceMessage] = useState<ChatMessageType | null>(null);
+
+  // Modo de Rota (Chat vs Equipe Multi-Agente) e Teto de Passos
+  const [routeMode, setRouteMode] = useState<"chat" | "team">("team");
+  const [maxSteps, setMaxSteps] = useState<number>(8);
 
   // Aplicação do Tema no DOM
   useEffect(() => {
@@ -37,7 +40,10 @@ export const App: React.FC = () => {
   }, [verifyConnection]);
 
   // Envio de Mensagem
-  const handleSendMessage = async (text: string) => {
+  const handleSendMessage = async (text: string, mode?: "chat" | "team", steps?: number) => {
+    const activeMode = mode ?? routeMode;
+    const activeMaxSteps = steps ?? maxSteps;
+
     const userMsgId = `usr-${Date.now()}`;
     const userMessage: ChatMessageType = {
       id: userMsgId,
@@ -54,6 +60,8 @@ export const App: React.FC = () => {
       const response = await sendMessage({
         message: text,
         conversationId: conversationId || undefined,
+        mode: activeMode,
+        maxSteps: activeMode === "team" ? activeMaxSteps : undefined,
       });
 
       // Salva conversationId se fornecido
@@ -197,7 +205,14 @@ export const App: React.FC = () => {
           onDenyDecision={handleDenyDecision}
         />
 
-        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          isLoading={isLoading}
+          routeMode={routeMode}
+          onRouteModeChange={setRouteMode}
+          maxSteps={maxSteps}
+          onMaxStepsChange={setMaxSteps}
+        />
       </main>
 
       <TraceDrawer

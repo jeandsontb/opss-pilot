@@ -54,6 +54,14 @@ export const traceFallbackSchema = z.object({
   node: z.string().min(1),
 });
 
+export const traceHandoffSchema = z.object({
+  type: z.literal("handoff"),
+  from: z.string().min(1),
+  to: z.string().min(1),
+  brief: z.string(),
+  node: z.string().min(1).optional(),
+});
+
 export const traceEventSchema = z.discriminatedUnion("type", [
   traceRouteSchema,
   traceThoughtSchema,
@@ -63,6 +71,7 @@ export const traceEventSchema = z.discriminatedUnion("type", [
   traceCritiqueSchema,
   traceAnswerSchema,
   traceFallbackSchema,
+  traceHandoffSchema,
 ]);
 
 export type TraceEvent = z.infer<typeof traceEventSchema>;
@@ -93,9 +102,9 @@ export const pendingActionSchema = z.object({
 
 export type PendingAction = z.infer<typeof pendingActionSchema>;
 
-// Resposta do Endpoint /chat
+// Resposta do Endpoint /chat ou /team
 export const chatResponseSchema = z.object({
-  requestId: z.string().uuid(),
+  requestId: z.string().min(1),
   conversationId: z.string().min(1),
   answer: z.string(),
   trace: z.array(traceEventSchema).default([]),
