@@ -1,0 +1,37 @@
+{
+  "name": "opss-pilot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env --import tsx src/index.ts",
+    "arena": "node --env-file=.env --import tsx src/arena.ts",
+    "seed": "tsx src/scripts/seed.ts",
+    "test": "node --import tsx --test test/*.test.ts",
+    "bench": "node --env-file=.env --import tsx src/bench.ts",
+    "long-conversation": "./scripts/conversa-longa.sh",
+    "text": "node --import tsx --test \"~src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "web:dev": "npm --prefix web run dev",
+    "web:build": "npm --prefix web run build",
+    "web:preview": "npm --prefix web run preview"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.0",
+    "@langchain/core": "latest",
+    "@langchain/langgraph": "latest",
+    "@langchain/openai": "latest",
+    "better-sqlite3": "^12.11.1",
+    "express": "latest",
+    "sequelize": "^3.30.0",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "@types/sequelize": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}

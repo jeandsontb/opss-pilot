@@ -1,0 +1,18 @@
+{
+  "services": [
+    { "id": "svc-1", "name": "api", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "svc-2", "name": "payments", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "svc-3", "name": "database", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "svc-4", "name": "queue", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "svc-5", "name": "web", "createdAt": "2026-01-01T00:00:00.000Z" }
+  ],
+  "alerts": [
+    { "id": "alert-1", "serviceId": "svc-1", "title": "High API latency", "status": "firing", "severity": "high", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "alert-2", "serviceId": "svc-2", "title": "Payment gateway errors", "status": "firing", "severity": "critical", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "alert-3", "serviceId": "svc-4", "title": "Queue backlog", "status": "firing", "severity": "medium", "createdAt": "2026-01-01T00:00:00.000Z" },
+    { "id": "alert-4", "serviceId": "svc-3", "title": "Database disk pressure", "status": "resolved", "severity": "high", "createdAt": "2026-01-01T00:00:00.000Z", "resolvedAt": "2026-01-02T00:00:00.000Z" },
+    { "id": "alert-5", "serviceId": "svc-5", "title": "Web 5xx spike", "status": "resolved", "severity": "medium", "createdAt": "2026-01-01T00:00:00.000Z", "resolvedAt": "2026-01-02T00:00:00.000Z" },
+    { "id": "alert-6", "serviceId": "svc-1", "title": "Cache miss rate", "status": "resolved", "severity": "low", "createdAt": "2026-01-01T00:00:00.000Z", "resolvedAt": "2026-01-02T00:00:00.000Z" }
+  ],
+  "incidents": []
+}
